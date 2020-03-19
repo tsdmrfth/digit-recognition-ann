@@ -1,3 +1,5 @@
+import io
+
 from PIL import Image
 from fastapi import FastAPI, UploadFile, File
 from numpy import asarray
@@ -29,11 +31,11 @@ def train_model():
 async def get_prediction(digit_file: UploadFile = File(...)):
     if model.is_trained:
         image_data = await digit_file.read()
-        image = Image.frombytes('L', (8, 8), image_data)
+        image = Image.open(io.BytesIO(image_data))
         data = asarray(image)
-        return int(model.predict(data[0:, 0:8].reshape(64)))
+        return int(model.predict(data[0:, 0:8, :1].reshape(64)))
     else:
-        return JSONResponse(content={'error': 'Model should be trained.'}, status_code=403)
+        return JSONResponse(content={'error': 'Model should be trained.'}, status_code=401)
 
 
 if __name__ == "__main__":
