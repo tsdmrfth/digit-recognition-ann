@@ -8,6 +8,7 @@ class DigitRecognizerNN:
         self.num_labels = 10
         self.theta1 = None
         self.theta2 = None
+        self.is_trained = False
 
     def fit(self, x, y):
         theta1 = self.get_random_weight(x.shape[1], 120)
@@ -16,7 +17,7 @@ class DigitRecognizerNN:
         alpha = 0.03
         cost_history = []
 
-        for i in range(500):
+        for i in range(100):
             cost = self.cost_function(x, vectorized_y, theta1, theta2, 1)
             cost_history.append(cost)
             theta1_grad, theta2_grad = self.get_gradients(x, vectorized_y, theta1, theta2, 1)
@@ -25,6 +26,7 @@ class DigitRecognizerNN:
 
         self.theta1 = theta1
         self.theta2 = theta2
+        self.is_trained = True
 
     def get_random_weight(self, incoming_conn, outgoing_conn):
         weight = np.random.rand(outgoing_conn, incoming_conn + 1) * 2 * self.epsilon_init - self.epsilon_init
@@ -84,5 +86,5 @@ class DigitRecognizerNN:
         return gradient
 
     def predict(self, features):
-        prediction = self.get_predictions(features, self.theta1, self.theta2)
+        prediction = self.get_predictions(np.array([features]), self.theta1, self.theta2)
         return prediction.argmax()
