@@ -4,9 +4,9 @@ from PIL import Image
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from numpy import asarray
-from sklearn.datasets import load_digits
 from starlette.responses import JSONResponse
 
+from server.model.data.get_train_data import get_train_data
 from server.model.digit_recognizer import DigitRecognizerNN
 
 app = FastAPI()
@@ -33,9 +33,9 @@ def root():
 
 @app.post('/train')
 def train_model():
-    digits = load_digits()
-    features = digits['data']
-    targets = digits['target']
+    train_data = get_train_data()
+    features = train_data['features']
+    targets = train_data['targets']
     model.fit(features, targets)
     return 'done'
 
