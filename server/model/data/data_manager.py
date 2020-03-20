@@ -40,8 +40,8 @@ def add_train_data(new_features, new_target):
     train_data = get_train_data()
     features = train_data['features']
     targets = train_data['targets']
-    features = r_[features, new_features]
-    targets = r_[targets, new_target]
+    features = r_[features, new_features.reshape(1, 64)]
+    targets = r_[targets, int(new_target)]
     store_train_data({
         'features': features,
         'targets': targets
