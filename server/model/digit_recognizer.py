@@ -87,4 +87,4 @@ class DigitRecognizerNN:
 
     def predict(self, features):
         prediction = self.get_predictions(np.array([features]), self.theta1, self.theta2)
-        return prediction.argmax()
+        return int(prediction.argmax()), float(prediction.max())

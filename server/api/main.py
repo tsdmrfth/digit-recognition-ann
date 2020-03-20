@@ -48,10 +48,13 @@ async def get_prediction(digit_file: UploadFile = File(...)):
         image_data = await digit_file.read()
         image = Image.open(io.BytesIO(image_data))
         data = asarray(image)
-        prediction = int(model.predict(data[0:, 0:8, :1].reshape(64)))
-        response_content = {'prediction': prediction}
+        prediction, percentage = model.predict(data[0:, 0:8, :1].reshape(64))
+        response_content = {
+            'prediction': prediction,
+            'percentage': percentage
+        }
     else:
-        response_content = {'error': 'Model should be trained. Training...'}
+        response_content = {'error': 'Model is not trained. Training model...'}
         status_code = 403
 
     return JSONResponse(content=response_content, status_code=status_code)
