@@ -51,4 +51,4 @@ def add_train_data(new_features, new_target):
 async def get_data_from_image(image_file):
     image_data = await image_file.read()
     image = Image.open(io.BytesIO(image_data))
-    return asarray(image)
+    return asarray(image)[0:, 0:8, :1].reshape(64)

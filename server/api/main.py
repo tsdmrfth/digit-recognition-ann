@@ -42,7 +42,7 @@ async def get_prediction(digit_file: UploadFile = File(...)):
 
     if model.is_trained:
         data = await get_data_from_image(digit_file)
-        prediction, percentage = model.predict(data[0:, 0:8, :1].reshape(64))
+        prediction, percentage = model.predict(data.reshape(64))
         response_content = {
             'prediction': prediction,
             'percentage': percentage
