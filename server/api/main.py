@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from server.model.data.data_manager import get_train_data, get_data_from_image
+from server.model.data.data_manager import get_train_data, get_data_from_image, add_train_data
 from server.model.digit_recognizer import DigitRecognizerNN
 
 app = FastAPI()
@@ -52,6 +52,14 @@ async def get_prediction(digit_file: UploadFile = File(...)):
         status_code = 403
 
     return JSONResponse(content=response_content, status_code=status_code)
+
+
+@app.put('/train-data')
+async def update_train_data(data: UploadFile = File(...)):
+    target = data.filename
+    features = await get_data_from_image(data)
+    add_train_data(features, target)
+    return 'Done'
 
 
 if __name__ == "__main__":
