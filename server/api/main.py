@@ -1,12 +1,8 @@
-import io
-
-from PIL import Image
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from numpy import asarray
 from starlette.responses import JSONResponse
 
-from server.model.data.get_train_data import get_train_data
+from server.model.data.data_manager import get_train_data, get_data_from_image
 from server.model.digit_recognizer import DigitRecognizerNN
 
 app = FastAPI()
@@ -45,9 +41,7 @@ async def get_prediction(digit_file: UploadFile = File(...)):
     status_code = 200
 
     if model.is_trained:
-        image_data = await digit_file.read()
-        image = Image.open(io.BytesIO(image_data))
-        data = asarray(image)
+        data = await get_data_from_image(digit_file)
         prediction, percentage = model.predict(data[0:, 0:8, :1].reshape(64))
         response_content = {
             'prediction': prediction,
