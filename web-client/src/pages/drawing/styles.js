@@ -1,6 +1,7 @@
 import colors from "../../../assets/colors";
 
 export const alertContainerWidth = 450
+export const drawingPreviewContainerWidth = 300
 
 export default {
     container: {
@@ -28,12 +29,6 @@ export default {
         borderStyle: 'solid',
         borderColor: colors.light,
         borderRadius: 10,
-        shadowOpacity: 0.9,
-        shadowColor: 'black',
-        shadowOffset: {
-            width: 2,
-            height: 2
-        }
     },
     errorContainer: {
         width: alertContainerWidth,
@@ -107,5 +102,15 @@ export default {
     closeIcon: {
         width: 24,
         height: 24
+    },
+    drawingPreviewContainer: {
+        position: 'absolute',
+        right: 20,
+    },
+    drawingPreview: {
+        zoom: 0.5,
+        borderStyle: 'solid',
+        borderColor: colors.light,
+        borderRadius: 10,
     }
 }

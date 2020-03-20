@@ -1,26 +1,30 @@
-import React, {useReducer, useState} from 'react'
+import React, {createRef, useReducer, useState} from 'react'
 import {Animated, Image as RNImage, Text, TextInput, TouchableOpacity, View} from 'react-native'
 import CanvasDraw from 'react-canvas-draw'
 import reducer, {initialState} from "../../service/prediction/reducer";
-import styles, {alertContainerWidth} from "./styles";
+import styles, {alertContainerWidth, drawingPreviewContainerWidth} from "./styles";
 import strings from "../../../assets/strings";
 import html2canvas from "html2canvas";
 import {getPredictionForDrawing} from "../../service/prediction/actions";
 import loading from '../../../assets/loading.svg'
 import closeIcon from '../../../assets/close.svg'
+import colors from "../../../assets/colors";
 
 const {
     View: AnimatedView,
-    spring
+    spring,
+    Value,
 } = Animated
-const errorContainerTranslateX = new Animated.Value(-alertContainerWidth)
-const predictionContainerTranslateX = new Animated.Value(-alertContainerWidth)
+const errorContainerTranslateX = new Value(-alertContainerWidth)
+const predictionContainerTranslateX = new Value(-alertContainerWidth)
+const drawingPreviewContainerTranslateX = new Value(window.innerWidth + drawingPreviewContainerWidth)
 
 export default () => {
 
     const [state, dispatch] = useReducer(reducer, initialState)
     const {error, prediction, percentage, isModelTrained} = state
     const [actualValue, setActualValue] = useState(undefined)
+    const drawingPreviewDiv = createRef()
     const {
         container,
         getPredictionButton,
@@ -35,7 +39,9 @@ export default () => {
         actualValueInput,
         submitActualValueButton,
         closeIconContainer,
-        closeIcon: closeIconStyle
+        closeIcon: closeIconStyle,
+        drawingPreviewContainer,
+        drawingPreview
     } = styles
     const {
         predictionForYourDrawing,
@@ -46,6 +52,7 @@ export default () => {
         prediction: prediction_,
         percentage: percentage_
     } = strings
+    const {sky, lightSky} = colors
 
     if (isModelTrained) {
         startAnimation(errorContainerTranslateX, -alertContainerWidth)
@@ -64,7 +71,6 @@ export default () => {
             }
         ]
     }
-
     const predictionContainerAnimatedStyle = {
         transform: [
             {
@@ -72,6 +78,14 @@ export default () => {
             }
         ]
     }
+    const drawingPreviewContainerAnimatedStyle = {
+        transform: [
+            {
+                translateX: drawingPreviewContainerTranslateX
+            }
+        ]
+    }
+    const newGetPredictionButtonStyle = {backgroundColor: prediction ? lightSky : sky}
 
     return (
         <View style={container}>
@@ -134,11 +148,19 @@ export default () => {
                 canvasHeight={600}
                 brushColor={'white'}
                 className="canvasDraw"
+                disabled={!!prediction}
                 backgroundColor={'black'}/>
 
+            <AnimatedView style={[drawingPreviewContainer, drawingPreviewContainerAnimatedStyle]}>
+                <div
+                    ref={drawingPreviewDiv}
+                    style={drawingPreview}/>
+            </AnimatedView>
+
             <TouchableOpacity
-                style={getPredictionButton}
-                onPress={handleButtonPress}>
+                disabled={!!prediction}
+                onPress={handleButtonPress}
+                style={[getPredictionButton, newGetPredictionButtonStyle]}>
                 <Text style={buttonText}>
                     {getPredictions}
                 </Text>
@@ -175,12 +197,24 @@ export default () => {
                 }
 
                 canvas.toBlob(getPredictionForDrawing(dispatch), 'image/png', 1)
+                drawingPreviewDiv.current.appendChild(canvas)
+                startAnimation(drawingPreviewContainerTranslateX, 1)
             }
         })
     }
 
     function startAnimation(animation, toValue) {
         spring(animation, {toValue, tension: 40}).start()
+    }
+
+    function onClosePredictionAlertButtonClicked() {
+        hidePredictionContainer()
+        removeDrawingPreview()
+    }
+
+    function removeDrawingPreview() {
+        startAnimation(drawingPreviewContainerTranslateX, window.innerWidth + drawingPreviewContainerWidth)
+        setTimeout(() => drawingPreviewDiv.current.removeChild(drawingPreviewDiv.current.children[0]), 1000)
     }
 
     function hidePredictionContainer() {
