@@ -2,7 +2,7 @@ import React, {useReducer} from 'react'
 import {Animated, Text, TouchableOpacity, View} from 'react-native'
 import CanvasDraw from 'react-canvas-draw'
 import reducer, {initialState} from "../../service/prediction/reducer";
-import styles from "./styles";
+import styles, {errorContainerWidth} from "./styles";
 import strings from "../../../assets/strings";
 import html2canvas from "html2canvas";
 import {getPredictionForDrawing} from "../../service/prediction/actions";
@@ -12,19 +12,27 @@ const {
     View: AnimatedView,
     spring
 } = Animated
+const errorContainerTranslateX = new Animated.Value(-errorContainerWidth)
 
 export default () => {
 
-    const [{error, prediction}, dispatch] = useReducer(reducer, initialState);
-    const {container, button, buttonText, canvasDraw, errorContainer, errorText} = styles
-    const errorContainerTranslateX = new Animated.Value(-0)
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const {container, button, buttonText, canvasDraw, errorContainer, errorText, closeIcon} = styles
+    const {error, prediction, isModelTrained} = state
 
-    if (error) {
+    if (isModelTrained) {
+        spring(errorContainerTranslateX, {
+            toValue: -errorContainerWidth,
+            tension: 30
+        }).start()
+    } else if (error) {
         spring(errorContainerTranslateX, {
             toValue: 20,
-            tension: 40
+            tension: 30
         }).start()
-    } else if (prediction) {
+    }
+
+    if (prediction) {
         alert(`Prediction for your drawing: ${prediction}`)
     }
 

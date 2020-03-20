@@ -1,5 +1,5 @@
 import {getAxiosClient} from "../getAxiosClient";
-import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS} from "./types";
+import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED} from "./types";
 
 export const getPredictionForDrawing = dispatch => async drawing => {
     const data = new FormData();
@@ -11,6 +11,6 @@ export const getPredictionForDrawing = dispatch => async drawing => {
     } else {
         dispatch({type: GET_PREDICTION_ERROR, payload: response.data.error})
         await getAxiosClient().post('http://127.0.0.1:5000/train')
-        getPredictionForDrawing(drawing)
+        dispatch({type: MODEL_TRAINED})
     }
 }

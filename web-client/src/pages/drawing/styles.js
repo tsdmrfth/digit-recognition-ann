@@ -1,6 +1,6 @@
 import colors from "../../../assets/colors";
 
-export const errorContainerWidth = 400
+export const errorContainerWidth = 450
 
 export default {
     container: {
@@ -38,7 +38,7 @@ export default {
     errorContainer: {
         width: errorContainerWidth,
         height: 100,
-        justifyContent: 'center',
+        justifyContent: 'space-around',
         alignItems: 'center',
         flexDirection: 'row',
         backgroundColor: colors.red,
@@ -49,5 +49,12 @@ export default {
     errorText: {
         fontSize: 22,
         color: 'white',
+    },
+    closeIcon: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        width: 20,
+        height: 20
     }
 }

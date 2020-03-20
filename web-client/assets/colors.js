@@ -1,5 +1,5 @@
 export default {
-    sun: '#f1c40f',
-    midnight: '#596275',
-    red: '#c0392b'
+    sun: '#3498db',
+    midnight: '#bdc3c7',
+    red: '#f39c12'
 }
