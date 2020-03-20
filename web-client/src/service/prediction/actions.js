@@ -2,7 +2,7 @@ import {getAxiosClient} from "../getAxiosClient";
 import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED, RESET_STATE} from "./types";
 
 export const getPredictionForDrawing = dispatch => async drawing => {
-    const formData = new FormData();
+    const formData = new FormData()
     formData.append('digit_file', drawing)
     const {
         status,
