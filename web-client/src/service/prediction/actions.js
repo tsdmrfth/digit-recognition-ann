@@ -1,5 +1,5 @@
 import {getAxiosClient} from "../getAxiosClient";
-import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED} from "./types";
+import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED, RESET_STATE} from "./types";
 
 export const getPredictionForDrawing = dispatch => async drawing => {
     const formData = new FormData();
@@ -22,3 +22,5 @@ export const getPredictionForDrawing = dispatch => async drawing => {
         getPredictionForDrawing(dispatch)(drawing)
     }
 }
+
+export const resetState = dispatch => dispatch({type: RESET_STATE})

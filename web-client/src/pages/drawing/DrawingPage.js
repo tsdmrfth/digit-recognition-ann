@@ -5,26 +5,30 @@ import reducer, {initialState} from "../../service/prediction/reducer";
 import styles, {alertContainerWidth, drawingPreviewContainerWidth} from "./styles";
 import strings from "../../../assets/strings";
 import html2canvas from "html2canvas";
-import {getPredictionForDrawing} from "../../service/prediction/actions";
+import {getPredictionForDrawing, resetState} from "../../service/prediction/actions";
 import loading from '../../../assets/loading.svg'
 import closeIcon from '../../../assets/close.svg'
-import colors from "../../../assets/colors";
+import colors from "../../../assets/colors"
+import eraserIcon from '../../../assets/eraser.svg'
 
 const {
     View: AnimatedView,
     spring,
     Value,
+    timing
 } = Animated
 const errorContainerTranslateX = new Value(-alertContainerWidth)
 const predictionContainerTranslateX = new Value(-alertContainerWidth)
 const drawingPreviewContainerTranslateX = new Value(window.innerWidth + drawingPreviewContainerWidth)
+const eraserIconOpacity = new Value(0)
 
-export default () => {
+export default function () {
 
     const [state, dispatch] = useReducer(reducer, initialState)
     const {error, prediction, percentage, isModelTrained} = state
     const [actualValue, setActualValue] = useState(undefined)
     const drawingPreviewDiv = createRef()
+    const canvasDrawRef = createRef()
     const {
         container,
         getPredictionButton,
@@ -41,7 +45,10 @@ export default () => {
         closeIconContainer,
         closeIcon: closeIconStyle,
         drawingPreviewContainer,
-        drawingPreview
+        drawingPreview,
+        eraserIconContainer,
+        refreshIcon: refreshIconStyle,
+        bottomButtonsContainer
     } = styles
     const {
         predictionForYourDrawing,
@@ -50,18 +57,19 @@ export default () => {
         getPredictions,
         submit,
         prediction: prediction_,
-        percentage: percentage_
+        percentage: percentage_,
+        refresh
     } = strings
     const {sky, lightSky} = colors
 
     if (isModelTrained) {
-        startAnimation(errorContainerTranslateX, -alertContainerWidth)
+        startSpringAnimation(errorContainerTranslateX, -alertContainerWidth)
     } else if (error) {
-        startAnimation(errorContainerTranslateX, 20)
+        startSpringAnimation(errorContainerTranslateX, 20)
     }
 
     if (prediction) {
-        startAnimation(predictionContainerTranslateX, 20)
+        startSpringAnimation(predictionContainerTranslateX, 20)
     }
 
     const errorContainerAnimatedStyle = {
@@ -86,6 +94,7 @@ export default () => {
         ]
     }
     const newGetPredictionButtonStyle = {backgroundColor: prediction ? lightSky : sky}
+    const eraserIconAnimatedStyle = {opacity: eraserIconOpacity}
 
     return (
         <View style={container}>
@@ -145,6 +154,7 @@ export default () => {
                 brushRadius={30}
                 canvasWidth={600}
                 style={canvasDraw}
+                ref={canvasDrawRef}
                 canvasHeight={600}
                 brushColor={'white'}
                 className="canvasDraw"
@@ -157,14 +167,28 @@ export default () => {
                     style={drawingPreview}/>
             </AnimatedView>
 
-            <TouchableOpacity
-                disabled={!!prediction}
-                onPress={handleButtonPress}
-                style={[getPredictionButton, newGetPredictionButtonStyle]}>
-                <Text style={buttonText}>
-                    {getPredictions}
-                </Text>
-            </TouchableOpacity>
+            <View style={bottomButtonsContainer}>
+
+                <AnimatedView style={[eraserIconContainer, eraserIconAnimatedStyle]}>
+
+                    <TouchableOpacity onPress={resetDrawingState}>
+                        <RNImage
+                            source={eraserIcon}
+                            style={refreshIconStyle}/>
+                    </TouchableOpacity>
+
+                </AnimatedView>
+
+                <TouchableOpacity
+                    disabled={!!prediction}
+                    onPress={handleButtonPress}
+                    style={[getPredictionButton, newGetPredictionButtonStyle]}>
+                    <Text style={buttonText}>
+                        {getPredictions}
+                    </Text>
+                </TouchableOpacity>
+
+            </View>
 
         </View>
     )
@@ -198,27 +222,35 @@ export default () => {
 
                 canvas.toBlob(getPredictionForDrawing(dispatch), 'image/png', 1)
                 drawingPreviewDiv.current.appendChild(canvas)
-                startAnimation(drawingPreviewContainerTranslateX, 1)
+                startSpringAnimation(drawingPreviewContainerTranslateX, 1)
+                startTimingAnimation(eraserIconOpacity, 1)
             }
         })
     }
 
-    function startAnimation(animation, toValue) {
-        spring(animation, {toValue, tension: 40}).start()
+    function startSpringAnimation(animation, toValue, endCallback) {
+        spring(animation, {toValue, tension: 20}).start(endCallback)
     }
 
-    function onClosePredictionAlertButtonClicked() {
-        hidePredictionContainer()
-        removeDrawingPreview()
+    function startTimingAnimation(animation, toValue, duration = 500, endCallback) {
+        timing(animation, {toValue, duration}).start(endCallback)
     }
 
     function removeDrawingPreview() {
-        startAnimation(drawingPreviewContainerTranslateX, window.innerWidth + drawingPreviewContainerWidth)
-        setTimeout(() => drawingPreviewDiv.current.removeChild(drawingPreviewDiv.current.children[0]), 1000)
+        startSpringAnimation(drawingPreviewContainerTranslateX, window.innerWidth + 300)
+        drawingPreviewDiv.current.removeChild(drawingPreviewDiv.current.lastChild)
     }
 
     function hidePredictionContainer() {
-        startAnimation(predictionContainerTranslateX, -alertContainerWidth)
+        startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
+    }
+
+    function resetDrawingState() {
+        startTimingAnimation(eraserIconOpacity, 0)
+        removeDrawingPreview()
+        startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
+        canvasDrawRef.current.clear()
+        resetState(dispatch)
     }
 
 }

@@ -13,7 +13,6 @@ export default {
     },
     getPredictionButton: {
         padding: 5,
-        marginTop: 20,
         height: 40,
         borderRadius: 5,
         backgroundColor: colors.sky,
@@ -112,5 +111,22 @@ export default {
         borderStyle: 'solid',
         borderColor: colors.light,
         borderRadius: 10,
+    },
+    bottomButtonsContainer: {
+        width: 600,
+        marginTop: 20,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    eraserIconContainer: {
+        position: 'absolute',
+        left: 10,
+        transform: [{scale: 1.3}]
+    },
+    refreshIcon: {
+        width: 24,
+        height: 24,
+        marginRight: 5
     }
 }

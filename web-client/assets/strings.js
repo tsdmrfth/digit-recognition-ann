@@ -5,5 +5,6 @@ export default {
     actualValue: 'Actual value',
     submit: 'Submit',
     prediction: 'Prediction',
-    percentage: 'Percentage'
+    percentage: 'Percentage',
+    refresh: 'Refresh'
 }
