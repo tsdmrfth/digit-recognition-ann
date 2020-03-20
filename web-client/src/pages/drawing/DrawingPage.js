@@ -5,7 +5,7 @@ import reducer, {initialState} from "../../service/prediction/reducer";
 import styles, {alertContainerWidth, drawingPreviewContainerWidth} from "./styles";
 import strings from "../../../assets/strings";
 import html2canvas from "html2canvas";
-import {getPredictionForDrawing, resetState} from "../../service/prediction/actions";
+import {getPredictionForDrawing, resetState, setActualValueForDrawing} from "../../service/prediction/actions";
 import loading from '../../../assets/loading.svg'
 import closeIcon from '../../../assets/close.svg'
 import colors from "../../../assets/colors"
@@ -95,6 +95,7 @@ export default function () {
     }
     const newGetPredictionButtonStyle = {backgroundColor: prediction ? lightSky : sky}
     const eraserIconAnimatedStyle = {opacity: eraserIconOpacity}
+    const newSubmitButtonStyle = {opacity: actualValue ? 1 : 0.8}
 
     return (
         <View style={container}>
@@ -130,7 +131,8 @@ export default function () {
                         onChangeText={text => setActualValue(Number(text))}/>
 
                     <TouchableOpacity
-                        style={submitActualValueButton}>
+                        onPress={submitActualValueForDrawing}
+                        style={[submitActualValueButton, newSubmitButtonStyle]}>
                         <Text style={buttonText}>
                             {submit}
                         </Text>
@@ -193,38 +195,45 @@ export default function () {
         </View>
     )
 
-    function handleButtonPress() {
-        html2canvas(document.getElementsByClassName('canvasDraw').item(0)).then(canvas => {
-            const imageString = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
-            const image = new Image()
-            image.src = imageString
-            image.onload = function (event) {
-                const loadedImage = event.path[0]
-                const MAX_WIDTH = 8
-                const MAX_HEIGHT = 8
-                let width = loadedImage.naturalWidth
-                let height = loadedImage.naturalHeight
+    async function handleButtonPress() {
+        const canvas = await getCanvasFromDrawing()
+        canvas.toBlob(getPredictionForDrawing(dispatch), 'image/png', 1)
+        drawingPreviewDiv.current.appendChild(canvas)
+        startSpringAnimation(drawingPreviewContainerTranslateX, 1)
+        startTimingAnimation(eraserIconOpacity, 1)
+    }
 
-                if ((width > MAX_WIDTH) || (height > MAX_HEIGHT)) {
-                    if ((width / height) > (MAX_WIDTH / MAX_HEIGHT)) {
-                        height *= MAX_WIDTH / width
-                        width = MAX_WIDTH
-                    } else {
-                        width *= MAX_HEIGHT / height
-                        height = MAX_HEIGHT
+    function getCanvasFromDrawing() {
+        return new Promise(resolve => {
+            html2canvas(document.getElementsByClassName('canvasDraw').item(0)).then(canvas => {
+                const imageString = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
+                const image = new Image()
+                image.src = imageString
+                image.onload = function (event) {
+                    const loadedImage = event.path[0]
+                    const MAX_WIDTH = 8
+                    const MAX_HEIGHT = 8
+                    let width = loadedImage.naturalWidth
+                    let height = loadedImage.naturalHeight
+
+                    if ((width > MAX_WIDTH) || (height > MAX_HEIGHT)) {
+                        if ((width / height) > (MAX_WIDTH / MAX_HEIGHT)) {
+                            height *= MAX_WIDTH / width
+                            width = MAX_WIDTH
+                        } else {
+                            width *= MAX_HEIGHT / height
+                            height = MAX_HEIGHT
+                        }
+
+                        canvas.width = width
+                        canvas.height = height
+                        const ctx = canvas.getContext('2d')
+                        ctx.drawImage(image, 0, 0, width, height)
                     }
 
-                    canvas.width = width
-                    canvas.height = height
-                    const ctx = canvas.getContext('2d')
-                    ctx.drawImage(image, 0, 0, width, height)
+                    resolve(canvas)
                 }
-
-                canvas.toBlob(getPredictionForDrawing(dispatch), 'image/png', 1)
-                drawingPreviewDiv.current.appendChild(canvas)
-                startSpringAnimation(drawingPreviewContainerTranslateX, 1)
-                startTimingAnimation(eraserIconOpacity, 1)
-            }
+            })
         })
     }
 
@@ -251,6 +260,15 @@ export default function () {
         startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
         canvasDrawRef.current.clear()
         resetState(dispatch)
+    }
+
+    async function submitActualValueForDrawing() {
+        if (actualValue) {
+            const canvas = await getCanvasFromDrawing()
+            canvas.toBlob(blob => setActualValueForDrawing(blob, actualValue), 'image/png', 1)
+        } else {
+            alert(strings.pleaseEnterActualValue)
+        }
     }
 
 }

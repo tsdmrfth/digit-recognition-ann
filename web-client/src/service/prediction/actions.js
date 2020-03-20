@@ -1,5 +1,6 @@
 import {getAxiosClient} from "../getAxiosClient";
 import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED, RESET_STATE} from "./types";
+import urls from "../../../assets/urls";
 
 export const getPredictionForDrawing = dispatch => async drawing => {
     const formData = new FormData()
@@ -11,16 +12,22 @@ export const getPredictionForDrawing = dispatch => async drawing => {
             prediction,
             percentage
         }
-    } = await getAxiosClient().post('http://127.0.0.1:5000/prediction', formData)
+    } = await getAxiosClient().post(urls.prediction, formData)
 
     if (status === 200) {
         dispatch({type: GET_PREDICTION_SUCCESS, payload: {prediction, percentage}})
     } else {
         dispatch({type: GET_PREDICTION_ERROR, payload: error})
-        await getAxiosClient().post('http://127.0.0.1:5000/train')
+        await getAxiosClient().post(urls.train)
         dispatch({type: MODEL_TRAINED})
         getPredictionForDrawing(dispatch)(drawing)
     }
 }
 
 export const resetState = dispatch => dispatch({type: RESET_STATE})
+
+export const setActualValueForDrawing = async (drawing, actualValue) => {
+    const formData = new FormData()
+    formData.append('data', drawing, actualValue)
+    getAxiosClient().put(urls.addTrainData, formData)
+}
