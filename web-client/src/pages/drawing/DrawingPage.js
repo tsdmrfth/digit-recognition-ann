@@ -26,7 +26,7 @@ export default function () {
 
     const [state, dispatch] = useReducer(reducer, initialState)
     const {error, prediction, percentage, isModelTrained} = state
-    const [actualValue, setActualValue] = useState(undefined)
+    const [actualValue, setActualValue] = useState('')
     const drawingPreviewDiv = createRef()
     const canvasDrawRef = createRef()
     const {
@@ -128,7 +128,7 @@ export default function () {
                         value={actualValue}
                         style={actualValueInput}
                         placeholder={actualValue_}
-                        onChangeText={text => setActualValue(Number(text))}/>
+                        onChangeText={text => setActualValue(text)}/>
 
                     <TouchableOpacity
                         onPress={submitActualValueForDrawing}
@@ -260,6 +260,7 @@ export default function () {
         startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
         canvasDrawRef.current.clear()
         resetState(dispatch)
+        setActualValue('')
     }
 
     async function submitActualValueForDrawing() {
