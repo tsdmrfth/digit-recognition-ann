@@ -1,39 +1,60 @@
-import React, {useReducer} from 'react'
-import {Animated, Text, TouchableOpacity, View} from 'react-native'
+import React, {useReducer, useState} from 'react'
+import {Animated, Image as RNImage, Text, TextInput, TouchableOpacity, View} from 'react-native'
 import CanvasDraw from 'react-canvas-draw'
 import reducer, {initialState} from "../../service/prediction/reducer";
-import styles, {errorContainerWidth} from "./styles";
+import styles, {alertContainerWidth} from "./styles";
 import strings from "../../../assets/strings";
 import html2canvas from "html2canvas";
 import {getPredictionForDrawing} from "../../service/prediction/actions";
 import loading from '../../../assets/loading.svg'
+import closeIcon from '../../../assets/close.svg'
 
 const {
     View: AnimatedView,
     spring
 } = Animated
-const errorContainerTranslateX = new Animated.Value(-errorContainerWidth)
+const errorContainerTranslateX = new Animated.Value(-alertContainerWidth)
+const predictionContainerTranslateX = new Animated.Value(-alertContainerWidth)
 
 export default () => {
 
-    const [state, dispatch] = useReducer(reducer, initialState);
-    const {container, button, buttonText, canvasDraw, errorContainer, errorText, closeIcon} = styles
-    const {error, prediction, isModelTrained} = state
+    const [state, dispatch] = useReducer(reducer, initialState)
+    const {error, prediction, percentage, isModelTrained} = state
+    const [actualValue, setActualValue] = useState(undefined)
+    const {
+        container,
+        getPredictionButton,
+        buttonText,
+        canvasDraw,
+        errorContainer,
+        alertText,
+        predictionContainer,
+        predictionTitleText,
+        predictionText,
+        feedbackContainer,
+        actualValueInput,
+        submitActualValueButton,
+        closeIconContainer,
+        closeIcon: closeIconStyle
+    } = styles
+    const {
+        predictionForYourDrawing,
+        submitActualValueIfPredictionIsWrong,
+        actualValue: actualValue_,
+        getPredictions,
+        submit,
+        prediction: prediction_,
+        percentage: percentage_
+    } = strings
 
     if (isModelTrained) {
-        spring(errorContainerTranslateX, {
-            toValue: -errorContainerWidth,
-            tension: 30
-        }).start()
+        startAnimation(errorContainerTranslateX, -alertContainerWidth)
     } else if (error) {
-        spring(errorContainerTranslateX, {
-            toValue: 20,
-            tension: 30
-        }).start()
+        startAnimation(errorContainerTranslateX, 20)
     }
 
     if (prediction) {
-        alert(`Prediction for your drawing: ${prediction}`)
+        startAnimation(predictionContainerTranslateX, 20)
     }
 
     const errorContainerAnimatedStyle = {
@@ -44,14 +65,64 @@ export default () => {
         ]
     }
 
+    const predictionContainerAnimatedStyle = {
+        transform: [
+            {
+                translateX: predictionContainerTranslateX
+            }
+        ]
+    }
+
     return (
         <View style={container}>
 
             <AnimatedView style={[errorContainer, errorContainerAnimatedStyle]}>
-                <Text style={errorText}>
+                <Text style={alertText}>
                     {error}
                 </Text>
                 <img src={loading} alt={'Loading'}/>
+            </AnimatedView>
+
+            <AnimatedView style={[predictionContainer, predictionContainerAnimatedStyle]}>
+
+                <Text style={[alertText, predictionTitleText]}>
+                    {predictionForYourDrawing}
+                </Text>
+
+                <Text style={[alertText, predictionText]}>
+                    {`${prediction_}: ${prediction} ${percentage_}: ${percentage}`}
+                </Text>
+
+                <Text style={alertText}>
+                    {submitActualValueIfPredictionIsWrong}
+                </Text>
+
+                <View style={feedbackContainer}>
+
+                    <TextInput
+                        maxLength={1}
+                        value={actualValue}
+                        style={actualValueInput}
+                        placeholder={actualValue_}
+                        onChangeText={text => setActualValue(Number(text))}/>
+
+                    <TouchableOpacity
+                        style={submitActualValueButton}>
+                        <Text style={buttonText}>
+                            {submit}
+                        </Text>
+                    </TouchableOpacity>
+
+                </View>
+
+                <TouchableOpacity
+                    style={closeIconContainer}
+                    onPress={hidePredictionContainer}>
+                    <RNImage
+                        source={closeIcon}
+                        style={closeIconStyle}/>
+                </TouchableOpacity>
+
             </AnimatedView>
 
             <CanvasDraw
@@ -66,10 +137,10 @@ export default () => {
                 backgroundColor={'black'}/>
 
             <TouchableOpacity
-                onPress={handleButtonPress}
-                style={button}>
+                style={getPredictionButton}
+                onPress={handleButtonPress}>
                 <Text style={buttonText}>
-                    {strings.getPredictions}
+                    {getPredictions}
                 </Text>
             </TouchableOpacity>
 
@@ -108,5 +179,12 @@ export default () => {
         })
     }
 
+    function startAnimation(animation, toValue) {
+        spring(animation, {toValue, tension: 40}).start()
+    }
+
+    function hidePredictionContainer() {
+        startAnimation(predictionContainerTranslateX, -alertContainerWidth)
+    }
 
 }

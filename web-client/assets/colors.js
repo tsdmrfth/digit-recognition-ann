@@ -1,5 +1,7 @@
 export default {
-    sun: '#3498db',
+    sky: '#3498db',
     midnight: '#bdc3c7',
-    red: '#f39c12'
+    light: '#f39c12',
+    river: '#3498db',
+    asphalt: '#34495e'
 }
