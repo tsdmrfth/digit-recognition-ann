@@ -68,7 +68,7 @@ export default function () {
         startSpringAnimation(errorContainerTranslateX, 20)
     }
 
-    if (prediction) {
+    if (prediction !== null) {
         startSpringAnimation(predictionContainerTranslateX, 20)
     }
 
