@@ -1,5 +1,5 @@
-import React, {createRef, useReducer, useState} from 'react'
-import {Animated, Image as RNImage, Text, TextInput, TouchableOpacity, View} from 'react-native'
+import React, {createRef, useReducer} from 'react'
+import {Animated, Image as RNImage, Text, TouchableOpacity, View} from 'react-native'
 import CanvasDraw from 'react-canvas-draw'
 import reducer, {initialState} from "../../service/prediction/reducer";
 import styles, {alertContainerWidth, drawingPreviewContainerWidth} from "./styles";
@@ -10,6 +10,7 @@ import loading from '../../../assets/loading.svg'
 import closeIcon from '../../../assets/close.svg'
 import colors from "../../../assets/colors"
 import eraserIcon from '../../../assets/eraser.svg'
+import Feedback from "./components/feedback/Feedback";
 
 const {
     View: AnimatedView,
@@ -21,14 +22,14 @@ const errorContainerTranslateX = new Value(-alertContainerWidth)
 const predictionContainerTranslateX = new Value(-alertContainerWidth)
 const drawingPreviewContainerTranslateX = new Value(window.innerWidth + drawingPreviewContainerWidth)
 const eraserIconOpacity = new Value(0)
+const drawingPreviewDiv = createRef()
+const canvasDrawRef = createRef()
+const feedbackRef = createRef()
 
 export default function () {
 
     const [state, dispatch] = useReducer(reducer, initialState)
-    const {error, prediction, percentage, isModelTrained} = state
-    const [actualValue, setActualValue] = useState('')
-    const drawingPreviewDiv = createRef()
-    const canvasDrawRef = createRef()
+    const {error, prediction, percentage, isModelTrained, isFeedbackSubmitSuccess} = state
     const {
         container,
         getPredictionButton,
@@ -39,9 +40,6 @@ export default function () {
         predictionContainer,
         predictionTitleText,
         predictionText,
-        feedbackContainer,
-        actualValueInput,
-        submitActualValueButton,
         closeIconContainer,
         closeIcon: closeIconStyle,
         drawingPreviewContainer,
@@ -53,12 +51,9 @@ export default function () {
     const {
         predictionForYourDrawing,
         submitActualValueIfPredictionIsWrong,
-        actualValue: actualValue_,
         getPredictions,
-        submit,
         prediction: prediction_,
         percentage: percentage_,
-        refresh
     } = strings
     const {sky, lightSky} = colors
 
@@ -70,6 +65,10 @@ export default function () {
 
     if (prediction !== null) {
         startSpringAnimation(predictionContainerTranslateX, 20)
+    }
+
+    if (isFeedbackSubmitSuccess) {
+        feedbackRef.current.updateState({isSubmitSuccess: true, isLoading: false})
     }
 
     const errorContainerAnimatedStyle = {
@@ -95,7 +94,6 @@ export default function () {
     }
     const newGetPredictionButtonStyle = {backgroundColor: prediction ? lightSky : sky}
     const eraserIconAnimatedStyle = {opacity: eraserIconOpacity}
-    const newSubmitButtonStyle = {opacity: actualValue ? 1 : 0.8}
 
     return (
         <View style={container}>
@@ -121,28 +119,13 @@ export default function () {
                     {submitActualValueIfPredictionIsWrong}
                 </Text>
 
-                <View style={feedbackContainer}>
-
-                    <TextInput
-                        maxLength={1}
-                        value={actualValue}
-                        style={actualValueInput}
-                        placeholder={actualValue_}
-                        onChangeText={text => setActualValue(text)}/>
-
-                    <TouchableOpacity
-                        onPress={submitActualValueForDrawing}
-                        style={[submitActualValueButton, newSubmitButtonStyle]}>
-                        <Text style={buttonText}>
-                            {submit}
-                        </Text>
-                    </TouchableOpacity>
-
-                </View>
+                <Feedback
+                    ref={feedbackRef}
+                    onSubmit={submitActualValueForDrawing}/>
 
                 <TouchableOpacity
                     style={closeIconContainer}
-                    onPress={hidePredictionContainer}>
+                    onPress={onCloseIconClicked}>
                     <RNImage
                         source={closeIcon}
                         style={closeIconStyle}/>
@@ -250,7 +233,8 @@ export default function () {
         drawingPreviewDiv.current.removeChild(drawingPreviewDiv.current.lastChild)
     }
 
-    function hidePredictionContainer() {
+    function onCloseIconClicked() {
+        feedbackRef.current.resetState()
         startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
     }
 
@@ -259,14 +243,16 @@ export default function () {
         removeDrawingPreview()
         startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
         canvasDrawRef.current.clear()
+        feedbackRef.current.resetState()
         resetState(dispatch)
-        setActualValue('')
     }
 
-    async function submitActualValueForDrawing() {
+    async function submitActualValueForDrawing(actualValue) {
         if (actualValue) {
+            feedbackRef.current.updateState({isLoading: true})
             const canvas = await getCanvasFromDrawing()
-            canvas.toBlob(blob => setActualValueForDrawing(blob, actualValue), 'image/png', 1)
+            canvas.toBlob(blob => setActualValueForDrawing(dispatch)(blob, actualValue), 'image/png', 1)
+            feedbackRef.current.updateState({isLoading: true})
         } else {
             alert(strings.pleaseEnterActualValue)
         }

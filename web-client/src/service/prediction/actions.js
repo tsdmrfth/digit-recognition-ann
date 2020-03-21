@@ -1,5 +1,11 @@
 import {getAxiosClient} from "../getAxiosClient";
-import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED, RESET_STATE} from "./types";
+import {
+    FEEDBACK_SUBMIT_SUCCESS,
+    GET_PREDICTION_ERROR,
+    GET_PREDICTION_SUCCESS,
+    MODEL_TRAINED,
+    RESET_STATE
+} from "./types";
 import urls from "../../../assets/urls";
 
 export const getPredictionForDrawing = dispatch => async drawing => {
@@ -26,8 +32,9 @@ export const getPredictionForDrawing = dispatch => async drawing => {
 
 export const resetState = dispatch => dispatch({type: RESET_STATE})
 
-export const setActualValueForDrawing = async (drawing, actualValue) => {
+export const setActualValueForDrawing = dispatch => async (drawing, actualValue) => {
     const formData = new FormData()
     formData.append('data', drawing, actualValue)
-    getAxiosClient().put(urls.addTrainData, formData)
+    await getAxiosClient().put(urls.addTrainData, formData)
+    dispatch({type: FEEDBACK_SUBMIT_SUCCESS})
 }

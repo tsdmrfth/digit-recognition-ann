@@ -1,10 +1,17 @@
-import {GET_PREDICTION_ERROR, GET_PREDICTION_SUCCESS, MODEL_TRAINED, RESET_STATE} from "./types";
+import {
+    FEEDBACK_SUBMIT_SUCCESS,
+    GET_PREDICTION_ERROR,
+    GET_PREDICTION_SUCCESS,
+    MODEL_TRAINED,
+    RESET_STATE
+} from "./types";
 
 export const initialState = {
     error: '',
     prediction: null,
     isModelTrained: false,
-    percentage: null
+    percentage: null,
+    isFeedbackSubmitSuccess: false,
 }
 
 export default (state, {type, payload}) => {
@@ -17,7 +24,9 @@ export default (state, {type, payload}) => {
         case MODEL_TRAINED:
             return {...state, isModelTrained: true}
         case RESET_STATE:
-            return {...state, prediction: null, percentage: null}
+            return {...state, prediction: null, percentage: null, isFeedbackSubmitSuccess: false}
+        case FEEDBACK_SUBMIT_SUCCESS:
+            return {...state, isFeedbackSubmitSuccess: true}
         default:
             return state
     }
