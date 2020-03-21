@@ -15,8 +15,7 @@ import Feedback from "./components/feedback/Feedback";
 const {
     View: AnimatedView,
     spring,
-    Value,
-    timing
+    Value
 } = Animated
 const errorContainerTranslateX = new Value(-alertContainerWidth)
 const predictionContainerTranslateX = new Value(-alertContainerWidth)
