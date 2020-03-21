@@ -21,7 +21,6 @@ const {
 const errorContainerTranslateX = new Value(-alertContainerWidth)
 const predictionContainerTranslateX = new Value(-alertContainerWidth)
 const drawingPreviewContainerTranslateX = new Value(window.innerWidth + drawingPreviewContainerWidth)
-const eraserIconOpacity = new Value(0)
 const drawingPreviewDiv = createRef()
 const canvasDrawRef = createRef()
 const feedbackRef = createRef()
@@ -93,7 +92,6 @@ export default function () {
         ]
     }
     const newGetPredictionButtonStyle = {backgroundColor: prediction ? lightSky : sky}
-    const eraserIconAnimatedStyle = {opacity: eraserIconOpacity}
 
     return (
         <View style={container}>
@@ -154,7 +152,7 @@ export default function () {
 
             <View style={bottomButtonsContainer}>
 
-                <AnimatedView style={[eraserIconContainer, eraserIconAnimatedStyle]}>
+                <View style={eraserIconContainer}>
 
                     <TouchableOpacity onPress={resetDrawingState}>
                         <RNImage
@@ -162,7 +160,7 @@ export default function () {
                             style={refreshIconStyle}/>
                     </TouchableOpacity>
 
-                </AnimatedView>
+                </View>
 
                 <TouchableOpacity
                     disabled={!!prediction}
@@ -183,7 +181,6 @@ export default function () {
         canvas.toBlob(getPredictionForDrawing(dispatch), 'image/png', 1)
         drawingPreviewDiv.current.appendChild(canvas)
         startSpringAnimation(drawingPreviewContainerTranslateX, 1)
-        startTimingAnimation(eraserIconOpacity, 1)
     }
 
     function getCanvasFromDrawing() {
@@ -224,10 +221,6 @@ export default function () {
         spring(animation, {toValue, tension: 20}).start(endCallback)
     }
 
-    function startTimingAnimation(animation, toValue, duration = 500, endCallback) {
-        timing(animation, {toValue, duration}).start(endCallback)
-    }
-
     function removeDrawingPreview() {
         startSpringAnimation(drawingPreviewContainerTranslateX, window.innerWidth + 300)
         drawingPreviewDiv.current.removeChild(drawingPreviewDiv.current.lastChild)
@@ -239,7 +232,6 @@ export default function () {
     }
 
     function resetDrawingState() {
-        startTimingAnimation(eraserIconOpacity, 0)
         removeDrawingPreview()
         startSpringAnimation(predictionContainerTranslateX, -alertContainerWidth)
         canvasDrawRef.current.clear()
