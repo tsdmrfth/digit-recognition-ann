@@ -2,15 +2,15 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from server.model.data.data_manager import get_train_data, get_data_from_image, add_train_data
-from server.model.digit_recognizer import DigitRecognizerNN
+from model.data.data_manager import get_train_data, get_data_from_image, add_train_data
+from model.digit_recognizer import DigitRecognizerNN
 
 app = FastAPI()
 
 model = DigitRecognizerNN()
 
 origins = [
-    'http://192.168.1.100:19006'
+    'http://192.168.1.6:19006'
 ]
 
 app.add_middleware(
